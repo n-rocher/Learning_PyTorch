@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-class Unet_Encoder_Block(nn.Module):
+class EncoderBlock(nn.Module):
 
     def __init__(self, in_channels, features):
-        super(Unet_Encoder_Block, self).__init__()
+        super(EncoderBlock, self).__init__()
 
         self.conv1 = nn.Conv2d(in_channels, features, padding=1, kernel_size=3)
         self.relu_1  = nn.ReLU()
@@ -19,43 +19,42 @@ class Unet_Encoder_Block(nn.Module):
         return out
 
 
-class Unet(nn.Module):
+class UNet(nn.Module):
     def __init__(self, in_channels, out_classes, features=16):
-        super(Unet, self).__init__()
+        super(UNet, self).__init__()
 
         # Encoder 
-        self.encoder_1 = Unet_Encoder_Block(in_channels, features)
+        self.encoder_1 = EncoderBlock(in_channels, features)
         self.pool_1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_2 = Unet_Encoder_Block(features, features * 2)
+        self.encoder_2 = EncoderBlock(features, features * 2)
         self.pool_2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_4 = Unet_Encoder_Block(features * 2, features * 4)
+        self.encoder_4 = EncoderBlock(features * 2, features * 4)
         self.pool_4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_8 = Unet_Encoder_Block(features * 4, features * 8)
+        self.encoder_8 = EncoderBlock(features * 4, features * 8)
         self.pool_8 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_16 = Unet_Encoder_Block(features * 8, features * 16)
+        self.encoder_16 = EncoderBlock(features * 8, features * 16)
        
 
         # Decoder 
         self.upconv_8 = nn.ConvTranspose2d(features * 16, features * 8, kernel_size=2, stride=2)
-        self.decoder_8 = Unet_Encoder_Block((features * 8) * 2, features * 8)
+        self.decoder_8 = EncoderBlock((features * 8) * 2, features * 8)
        
         self.upconv_4 = nn.ConvTranspose2d(features * 8, features * 4, kernel_size=2, stride=2)
-        self.decoder_4 = Unet_Encoder_Block((features * 4) * 2, features * 4)
+        self.decoder_4 = EncoderBlock((features * 4) * 2, features * 4)
      
         self.upconv_2 = nn.ConvTranspose2d(features * 4, features * 2, kernel_size=2, stride=2)
-        self.decoder_2 = Unet_Encoder_Block((features * 2) * 2, features * 2)
+        self.decoder_2 = EncoderBlock((features * 2) * 2, features * 2)
        
         self.upconv_1 = nn.ConvTranspose2d(features * 2, features, kernel_size=2, stride=2)
-        self.decoder_1 = Unet_Encoder_Block(features * 2, features)
+        self.decoder_1 = EncoderBlock(features * 2, features)
         
         
         # Classifier 
         self.classifier = nn.Conv2d(features, out_classes, kernel_size=1)
-        # self.softmax = nn.Softmax()
 
     def forward(self, x):
 
@@ -94,11 +93,10 @@ class Unet(nn.Module):
 
         # Classifier
         classifier = self.classifier(decoder_1)
-        # classifier = self.softmax(classifier)
         
         return classifier
 
 if __name__ == "__main__":
-    block = Unet_Encoder_Block(3, 16)
-    x = torch.randn(1, 3, 64, 64)
-    print(block(x).shape)
+    model = UNet(3, 17)
+    from torchinfo import summary
+    summary(model, input_size=(5, 3, 512, 512))

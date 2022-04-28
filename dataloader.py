@@ -118,9 +118,8 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         target_raw = target_raw.resize(self.input_size)
         target_raw = np.asarray(target_raw)
 
-        # ins_255 = np.ones(self.input_size[::-1]) * 255
         # instance = np.zeros(self.input_size[::-1])
-        target = np.zeros((len(AUDI_A2D2_CATEGORIES),) + self.input_size[::-1])
+        target = np.zeros((len(AUDI_A2D2_CATEGORIES)+ 1,) + self.input_size[::-1])
 
         # For every categories in the list
         for i, id_category in enumerate(self.CATEGORIES):
@@ -133,13 +132,16 @@ class A2D2_Dataset(torch.utils.data.Dataset):
                 test = cv2.inRange(target_raw, tuple(color), tuple(color))
 
                 # Add the value where it belongs to
-                target[i] = target[i] + (test >= 1)
+                target[i+1] = target[i+1] + (test >= 1)
 
                 # We copy 255 value for a white image
                 # res = cv2.bitwise_and(ins_255, ins_255, mask=test)
 
                 # And we past it to the good id to the instance
                 # instance = instance + res
+                instance = instance + test
+
+        target[0] = instance == 0
 
         # Transform to pytorch tensor
         img = self.img_transform(img)

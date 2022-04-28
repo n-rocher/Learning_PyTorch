@@ -8,7 +8,7 @@ import multiprocessing
 from torchinfo import summary
 from alive_progress import alive_bar
 
-from model import Unet
+from models.UNet import UNet
 
 if __name__ == "__main__":
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     data_loader_val = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=WORKERS)
 
     # Create model
-    model = Unet(3, train_dataset.classes())
+    model = UNet(3, train_dataset.classes())
     model.to(device)
 
     wandb.watch(model, log_freq=100)
