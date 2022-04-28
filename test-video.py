@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from torchvision.transforms import ToTensor, Compose
 
-from model import Unet
+from models.UNet import UNet
 from dataloader import COLOR_CATEGORIES
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # Model initialisation
-    model = Unet(3, len(COLOR_CATEGORIES))
+    model = UNet(3, len(COLOR_CATEGORIES))
     model.to(device)
 
     # Loading the model
