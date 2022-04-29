@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from torchvision.transforms import ToTensor, Compose
 
+from models.ResUNet import ResUNet
 from models.UNet import UNet
 from dataloader import COLOR_CATEGORIES
 
@@ -12,14 +13,14 @@ if __name__ == "__main__":
 
     # Constant
     IMG_SIZE = (512, 512)
-    MODEL_PATH = "./unet_epoch-4.pth"
+    MODEL_PATH = "./ResUNet_epoch-12.pth"
     VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
 
     # Use GPU if available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # Model initialisation
-    model = UNet(3, len(COLOR_CATEGORIES))
+    model = ResUNet(3, len(COLOR_CATEGORIES))
     model.to(device)
 
     # Loading the model

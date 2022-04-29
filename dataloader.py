@@ -5,7 +5,7 @@ from PIL import Image
 import numpy as np
 
 import torch
-from torchvision.transforms import ToTensor, Compose
+from torchvision.transforms import ToTensor, Normalize, Compose
 
 AUDI_A2D2_CATEGORIES = {
     1: {"name": "Road", "color": [[180, 50, 180], [255, 0, 255]]},
@@ -73,7 +73,7 @@ class A2D2_Dataset(torch.utils.data.Dataset):
 
         self.CATEGORIES = AUDI_A2D2_CATEGORIES
 
-        self.img_transform = Compose([ToTensor()])
+        self.img_transform = Compose([ToTensor(), Normalize((122.15811035 / 255.0, 123.63384277 / 255.0, 125.46741699 / 255.0), (26.7605721 / 255.0, 35.98626225 / 255.0, 39.93803676 / 255.0))])
 
     @staticmethod
     def classes():
@@ -113,8 +113,13 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         # Loading Image
 
         # -> With PIL
-        img = Image.open(input_img_path).convert("RGB")
-        img = img.resize(self.input_size)
+        # img = Image.open(input_img_path).convert("RGB")
+        # img = img.resize(self.input_size)
+
+        # -> With OpenCV
+        img = cv2.imread(input_img_path, cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, self.input_size, interpolation=cv2.INTER_NEAREST)
 
         # -> With VIPS
         # img = pyvips.Image.new_from_file(input_img_path, access="sequential")
@@ -125,13 +130,17 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         # mem_img = img.write_to_memory()
         # img = np.frombuffer(mem_img, dtype=np.uint8).reshape(self.input_size[0], self.input_size[1], 3)
 
-
         # Loading Target
-       
+
         # -> With PIL
-        target_raw = Image.open(target_img_path)
-        target_raw = target_raw.resize(self.input_size)
-        target_raw = np.asarray(target_raw)
+        # target_raw = Image.open(target_img_path)
+        # target_raw = target_raw.resize(self.input_size)
+        # target_raw = np.asarray(target_raw)
+
+        # -> With OpenCV
+        target_raw = cv2.imread(target_img_path, cv2.IMREAD_COLOR)
+        target_raw = cv2.cvtColor(target_raw, cv2.COLOR_BGR2RGB)
+        target_raw = cv2.resize(target_raw, self.input_size, interpolation=cv2.INTER_NEAREST)
 
         # -> With VIPS
         # target_raw = pyvips.Image.new_from_file(target_img_path, access="sequential")
@@ -140,8 +149,6 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         # print(target_raw.shape)
         # mem_target_raw = target_raw.write_to_memory()
         # target_raw = np.frombuffer(mem_target_raw, dtype=np.uint8).reshape(self.input_size[0], self.input_size[1], 3)
-
-
 
         background = np.zeros(self.input_size[::-1])
         target = np.zeros((len(self.CATEGORIES) + 1,) + self.input_size[::-1])
