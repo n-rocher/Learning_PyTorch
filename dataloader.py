@@ -1,9 +1,10 @@
 import os
 import cv2
+import pyvips
+from PIL import Image
 import numpy as np
 
 import torch
-from PIL import Image
 from torchvision.transforms import ToTensor, Compose
 
 AUDI_A2D2_CATEGORIES = {
@@ -30,6 +31,7 @@ AUDI_A2D2_CATEGORIES = {
 }
 
 CATEGORIES_COLORS = {
+    0: {"name": "Background", "color": [0, 0, 0]},
     1: {"name": "Road", "color": [75, 75, 75]},
     2: {"name": "Lane", "color": [255, 255, 255]},
     3: {"name": "Crosswalk", "color": [200, 128, 128]},
@@ -108,21 +110,44 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         input_img_path = self.input_img_paths[idx]
         target_img_path = self.target_img_paths[idx]
 
+        # Loading Image
+
+        # -> With PIL
         img = Image.open(input_img_path).convert("RGB")
         img = img.resize(self.input_size)
 
+        # -> With VIPS
+        # img = pyvips.Image.new_from_file(input_img_path, access="sequential")
+        # img = img.thumbnail_image(self.input_size[0], height=self.input_size[1], no_rotate= True)
+        # img = img.numpy()
+        # print(img.shape)
+        # exit()
+        # mem_img = img.write_to_memory()
+        # img = np.frombuffer(mem_img, dtype=np.uint8).reshape(self.input_size[0], self.input_size[1], 3)
 
-        # img = np.asarray(img, dtype=np.uint8)
 
+        # Loading Target
+       
+        # -> With PIL
         target_raw = Image.open(target_img_path)
         target_raw = target_raw.resize(self.input_size)
         target_raw = np.asarray(target_raw)
 
-        # instance = np.zeros(self.input_size[::-1])
-        target = np.zeros((len(AUDI_A2D2_CATEGORIES)+ 1,) + self.input_size[::-1])
+        # -> With VIPS
+        # target_raw = pyvips.Image.new_from_file(target_img_path, access="sequential")
+        # target_raw = target_raw.thumbnail_image(self.input_size[0], height=self.input_size[1])
+        # target_raw = target_raw.numpy()
+        # print(target_raw.shape)
+        # mem_target_raw = target_raw.write_to_memory()
+        # target_raw = np.frombuffer(mem_target_raw, dtype=np.uint8).reshape(self.input_size[0], self.input_size[1], 3)
+
+
+
+        background = np.zeros(self.input_size[::-1])
+        target = np.zeros((len(self.CATEGORIES) + 1,) + self.input_size[::-1])
 
         # For every categories in the list
-        for i, id_category in enumerate(self.CATEGORIES):
+        for id_category in range(1, len(self.CATEGORIES) + 1):
 
             data_category = self.CATEGORIES[id_category]
 
@@ -132,19 +157,39 @@ class A2D2_Dataset(torch.utils.data.Dataset):
                 test = cv2.inRange(target_raw, tuple(color), tuple(color))
 
                 # Add the value where it belongs to
-                target[i+1] = target[i+1] + (test >= 1)
+                target[id_category] = target[id_category] + (test >= 1)
 
-                # We copy 255 value for a white image
-                # res = cv2.bitwise_and(ins_255, ins_255, mask=test)
+                # Write what's used for the background
+                background = background + test
 
-                # And we past it to the good id to the instance
-                # instance = instance + res
-                instance = instance + test
-
-        target[0] = instance == 0
+        target[0] = background == 0
 
         # Transform to pytorch tensor
         img = self.img_transform(img)
         target = torch.from_numpy(target)
 
         return img, target
+
+
+if __name__ == "__main__":
+
+    import matplotlib.pyplot as plt
+
+    training_dataset = A2D2_Dataset("training", size=(512, 400))
+
+    for id in range(len(training_dataset)):
+        img, target = training_dataset.__getitem__(id)
+
+        img = img.numpy()
+        target = target.numpy()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 2, 1)
+        imgplot = plt.imshow(img.transpose(1, 2, 0))
+        ax.set_title('Image')
+
+        ax = fig.add_subplot(1, 2, 2)
+        imgplot = plt.imshow(np.argmax(target, axis=0))
+        ax.set_title('Target')
+
+        plt.show()

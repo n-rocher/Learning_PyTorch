@@ -70,11 +70,11 @@ class ResUNet(nn.Module):
         self.decoder_1 = ResUNetEncoderBlock(features * 3, features)
 
         # Classifier
-        self.convClassifier1 = nn.Conv2d(features * 2, out_classes * 2, kernel_size=3)
+        self.convClassifier1 = nn.Conv2d(features * 2, out_classes * 2, padding="same", kernel_size=3)
         self.batchNormClassifier = nn.BatchNorm2d(out_classes * 2)
         self.reluClassifier = nn.ReLU()
 
-        self.convClassifier2 = nn.Conv2d(out_classes * 2, out_classes, kernel_size=1)
+        self.convClassifier2 = nn.Conv2d(out_classes * 2, out_classes, padding="same", kernel_size=1)
 
     def forward(self, x):
 

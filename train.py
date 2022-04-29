@@ -9,6 +9,7 @@ from torchinfo import summary
 from alive_progress import alive_bar
 
 from models.UNet import UNet
+from models.ResUNet import ResUNet
 
 if __name__ == "__main__":
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = True
 
     # Constant
-    BATCH_SIZE = 8
+    BATCH_SIZE = 5
     IMG_SIZE = (512, 512)  # 424 ?
     LEARNING_RATE = 0.001
     WORKERS = multiprocessing.cpu_count()
@@ -33,11 +34,11 @@ if __name__ == "__main__":
 
     # Define data loader
     data_loader_train = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True, num_workers=WORKERS)
-    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=WORKERS)
-    data_loader_val = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=WORKERS)
+    # data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=WORKERS)
+    data_loader_val = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=WORKERS)
 
     # Create model
-    model = UNet(3, train_dataset.classes())
+    model = ResUNet(3, train_dataset.classes())
     model.to(device)
 
     wandb.watch(model, log_freq=100)
@@ -140,6 +141,6 @@ if __name__ == "__main__":
         })
 
         # Save the model
-        torch.save(model.state_dict(), f'./unet_epoch-{epoch}.pth')
+        torch.save(model.state_dict(), f'./{model._get_name()}_epoch-{epoch}.pth')
 
 
