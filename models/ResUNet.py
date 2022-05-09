@@ -38,39 +38,39 @@ class ResUNetEncoderBlock(nn.Module):
 
 
 class ResUNet(nn.Module):
-    def __init__(self, in_channels, out_classes, features=16):
+    def __init__(self, in_channels, out_classes, features=16, kernel_size=3):
         super(ResUNet, self).__init__()
 
         # Encoder
-        self.encoder_1 = ResUNetEncoderBlock(in_channels, features)
+        self.encoder_1 = ResUNetEncoderBlock(in_channels, features, kernel_size=kernel_size)
         self.pool_1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_2 = ResUNetEncoderBlock(features * 2, features * 2)
+        self.encoder_2 = ResUNetEncoderBlock(features * 2, features * 2, kernel_size=kernel_size)
         self.pool_2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_4 = ResUNetEncoderBlock(features * 2 * 2, features * 4)
+        self.encoder_4 = ResUNetEncoderBlock(features * 2 * 2, features * 4, kernel_size=kernel_size)
         self.pool_4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_8 = ResUNetEncoderBlock(features * 2 * 4, features * 8)
+        self.encoder_8 = ResUNetEncoderBlock(features * 2 * 4, features * 8, kernel_size=kernel_size)
         self.pool_8 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.encoder_16 = ResUNetEncoderBlock(features * 2 * 8, features * 16)
+        self.encoder_16 = ResUNetEncoderBlock(features * 2 * 8, features * 16, kernel_size=kernel_size)
 
         # Decoder
         self.upconv_8 = nn.ConvTranspose2d(features * 2 * 16, features * 8, kernel_size=2, stride=2)
-        self.decoder_8 = ResUNetEncoderBlock((features * 8) * 3, features * 8)
+        self.decoder_8 = ResUNetEncoderBlock((features * 8) * 3, features * 8, kernel_size=kernel_size)
 
         self.upconv_4 = nn.ConvTranspose2d(features * 2 * 8, features * 4, kernel_size=2, stride=2)
-        self.decoder_4 = ResUNetEncoderBlock((features * 4) * 3, features * 4)
+        self.decoder_4 = ResUNetEncoderBlock((features * 4) * 3, features * 4, kernel_size=kernel_size)
 
         self.upconv_2 = nn.ConvTranspose2d(features * 2 * 4, features * 2, kernel_size=2, stride=2)
-        self.decoder_2 = ResUNetEncoderBlock((features * 2) * 3, features * 2)
+        self.decoder_2 = ResUNetEncoderBlock((features * 2) * 3, features * 2, kernel_size=kernel_size)
 
         self.upconv_1 = nn.ConvTranspose2d(features * 2 * 2, features, kernel_size=2, stride=2)
-        self.decoder_1 = ResUNetEncoderBlock(features * 3, features)
+        self.decoder_1 = ResUNetEncoderBlock(features * 3, features, kernel_size=kernel_size)
 
         # Classifier
-        self.convClassifier1 = nn.Conv2d(features * 2, out_classes * 2, padding="same", kernel_size=3)
+        self.convClassifier1 = nn.Conv2d(features * 2, out_classes * 2, padding="same", kernel_size=kernel_size)
         self.batchNormClassifier = nn.BatchNorm2d(out_classes * 2)
         self.reluClassifier = nn.ReLU()
 
@@ -80,6 +80,7 @@ class ResUNet(nn.Module):
 
         # Encoder
         encoder_1 = self.encoder_1(x)
+        # print(encoder_1.shape)
         pool_1 = self.pool_1(encoder_1)
 
         encoder_2 = self.encoder_2(pool_1)

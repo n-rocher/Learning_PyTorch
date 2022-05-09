@@ -55,10 +55,30 @@ CATEGORIES_COLORS = {
 }
 
 
+CLASS_LABELS = {
+    0: "Background",
+    1: "Road",
+    2: "Lane",
+    3: "Crosswalk",
+    4: "Curb",
+    5: "Sidewalk",
+    6: "Traffic Light",
+    7: "Traffic Sign",
+    8: "Person",
+    9: "Bicycle",
+    10: "Bus",
+    11: "Car",
+    12: "Motorcycle",
+    13: "Truck",
+    14: "Sky",
+    15: "Nature",
+    16: "Building"
+}
+
 values = CATEGORIES_COLORS.values()
-COLOR_CATEGORIES = np.zeros((len(values), 3), dtype=np.uint8)
+CLASS_COLORS = np.zeros((len(values), 3), dtype=np.uint8)
 for i, data in enumerate(values):
-    COLOR_CATEGORIES[i] = data["color"]
+    CLASS_COLORS[i] = data["color"]
 
 class A2D2_Dataset(torch.utils.data.Dataset):
 
@@ -68,7 +88,7 @@ class A2D2_Dataset(torch.utils.data.Dataset):
 
         self.input_size = size
 
-        self.dataset_folder = r"F:\\A2D2 Camera Semantic\\" + type + "\\"
+        self.dataset_folder = r"U:\\A2D2 Camera Semantic\\" + type + "\\"
         self.input_img_paths, self.target_img_paths = self.getData()
 
         self.CATEGORIES = AUDI_A2D2_CATEGORIES
@@ -76,8 +96,15 @@ class A2D2_Dataset(torch.utils.data.Dataset):
         self.img_transform = Compose([ToTensor(), Normalize((122.15811035 / 255.0, 123.63384277 / 255.0, 125.46741699 / 255.0), (26.7605721 / 255.0, 35.98626225 / 255.0, 39.93803676 / 255.0))])
 
     @staticmethod
-    def classes():
+    def n_class():
         return len(CATEGORIES_COLORS)
+
+    @staticmethod
+    def static_data():
+        return {
+            "labels": CLASS_LABELS,
+            "colors": CLASS_COLORS
+        }
 
     def name(self):
         return "A2D2Dataset"

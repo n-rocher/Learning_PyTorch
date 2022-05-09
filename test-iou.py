@@ -12,7 +12,7 @@ def iou(target, prediction):
     prediction = prediction.view(-1)
 
     # Ignore IoU for background class ("0")
-    for cls in range(1, len(target)):  # This goes from 1:n_classes-1 -> class "0" is ignored
+    for cls in range(1, len(target)):  # This goes from 1:n_class-1 -> class "0" is ignored
         pred_inds = prediction == cls
         target_inds = target == cls
         intersection = (pred_inds[target_inds]).long().sum().data.cpu()[0]  # Cast to long to prevent overflows
